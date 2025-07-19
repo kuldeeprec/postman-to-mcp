@@ -1,61 +1,106 @@
 # MCP Server: {{serverName}}
 
-This is a versatile MCP (Model-Context Protocol) server generated automatically from a Postman Collection. It can run
-over **HTTP** for web clients or **Stdio** for local command-line tools.
+This is an advanced MCP (Model-Context Protocol) server generated automatically from a Postman Collection. It is
+designed to be flexible, robust, and easy to use.
+
+## Key Features
+
+- **Multiple Transport Modes**: Can run over HTTP with stateful sessions, as a simple stateless HTTP API, or over local
+STDIO.
+- **Recursive Tool Loading**: Automatically discovers and loads tool files from the `tools/` directory and all its
+subdirectories.
+- **Smart Schema Handling**: Correctly handles tools that do not require any input arguments.
+- **Dynamic and Extensible**: Easily add new tools by dropping `.js` files into the `tools/` directory.
+
+---
 
 ## Quick Start
 
 ### 1. Installation
 
-Install the required dependencies:
+First, install the required dependencies:
+
+
+npm install
 
 
 ### 2. Configuration
 
-Create a `.env` file by copying the example:
+Create a `.env` file by copying the example provided:
+
+cp .env.example .env
 
 
-Edit the `.env` file to set your desired transport and provide any necessary API keys.
+
+Open the `.env` file to configure the `PORT` and add any necessary API keys or other secrets your tools might need.
+These variables are available in your tool handlers via `process.env`.
+
+.env file
+PORT=3000
+API_KEY=your_secret_key_here
+
 
 ### 3. Running the Server
 
-You can run the server in two modes, controlled by the `MCP_TRANSPORT` environment variable in your `.env` file.
+This server was generated to run in **`{{serverMode}}`** mode. See below for instructions specific to this mode.
 
-#### Option 1: Stdio Mode (Default)
+#### Mode: `stdio` (For Local Command-Line Tools)
 
-This mode is for local command-line interaction. It's the default if `MCP_TRANSPORT` is not set.
+This mode is ideal for local development and integration with other command-line tools.
 
-**.env file:**
+**To run the server:**
+Use `node` to execute the server script directly. This bypasses `npm` and ensures a clean communication channel, which
+is **required** for STDIO.
 
-**Run:**
-The server will listen for MCP JSON-RPC messages on standard input and write responses to standard output.
+node server.js
 
-#### Option 2: HTTP Mode
 
-This mode exposes the server over a stateful HTTP endpoint using Express.js.
 
-**.env file:**
-text
-The server will listen for MCP JSON-RPC messages on standard input and write responses to standard output.
+The server will now listen for MCP JSON-RPC messages on standard input and write responses to standard output.
+Human-readable logs are sent to `stderr` so they do not interfere.
 
-#### Option 2: HTTP Mode
+#### Mode: `http-stateless` (Simple, Sessionless API)
 
-This mode exposes the server over a stateful HTTP endpoint using Express.js.
+This mode exposes a simple, sessionless HTTP endpoint. Every request is independent and processed immediately.
 
-**.env file:**
-MCP_TRANSPORT=http
-PORT=3000
-
-text
-
-**Run:**
+**To run the server:**
 npm start
 
-text
-The server will be available at `http://localhost:3000/mcp`. Clients must manage a `Mcp-Session-Id` header to maintain a
-stateful connection.
 
-## Available Tools
 
-This server exposes tools based on the files found in the `/tools` directory. The server logs will show a list of
-registered tools upon startup or when a new HTTP session is created.
+The server will be available at `http://localhost:3000/mcp` (or on the port specified in your `.env` file). Send `POST`
+requests with MCP `tools/call` payloads directly. No session management is needed.
+
+#### Mode: `http-session` (Stateful, Manages User Sessions)
+
+This mode exposes a full-featured, stateful HTTP endpoint that manages user sessions. It is ideal for complex,
+multi-turn interactions with an AI model.
+
+**To run the server:**
+npm start
+
+The server will be available at `http://localhost:3000/mcp`.
+
+**Session Workflow:**
+1. **Initialize**: A client must first send a `POST` request with an `initialize` message to start a session. The
+response will contain a `Mcp-Session-Id` header.
+2. **Interact**: Use this `Mcp-Session-Id` header in all subsequent `POST` (tool calls) or `GET` (streaming) requests to
+interact with the same session.
+3. **Terminate**: Send a `DELETE` request with the session ID to close the session.
+
+*This mode also supports stateless `tools/call` requests (sent without a session ID) for one-shot operations.*
+
+---
+
+## Project Structure
+
+- `server.js`: The main entry point and server logic.
+- `tools/`: The directory where all your generated tools live. You can organize tools in subfolders.
+- `.env`: Your environment-specific configuration file.
+- `package.json`: Project dependencies and scripts.
+
+## Adding New Tools
+
+To add a new tool, simply create a new `.js` file inside the `tools/` directory (or any of its subdirectories). The
+server will automatically discover and register it on the next startup. Each tool file should export the following
+properties: `name`, `title`, `description`, `inputSchema`, and `handler`.

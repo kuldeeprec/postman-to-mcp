@@ -74,7 +74,6 @@ const server = await createAndConfigureServer();
 transport = new StreamableHTTPServerTransport({ sessionIdGenerator: () => randomUUID(), onsessioninitialized: (id) => {
 transports[id] = transport; } });
 transport.onclose = () => { if (transport.sessionId) delete transports[transport.sessionId]; };
-console.log(`Initialized new session. Registered ${server.tools.size} tools.`);
 await server.connect(transport);
 } else {
 return res.status(400).json({ jsonrpc: '2.0', error: { code: -32000, message: 'Bad Request' } });
@@ -122,7 +121,6 @@ app.listen(PORT, () => console.log(`✅ Stateless MCP Server running on http://l
 // --- Stdio Transport (Default) ---
 const server = await createAndConfigureServer();
 const transport = new StdioServerTransport();
-console.log(`Registered ${server.tools.size} tools for stdio transport.`);
 await server.connect(transport);
 console.log(`✅ MCP Server running on stdio.`);
 }
