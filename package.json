@@ -2,6 +2,10 @@
     "name": "postman-to-mcp",
     "version": "1.0.0",
     "description": "A CLI tool to generate a full-featured MCP server from a Postman Collection version 2.0 must be in json format.",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kuldeeprec/postman-to-mcp.git"
+    },
     "main": "src/cli.js",
     "bin": {
         "postman-to-mcp": "src/cli.js"
