@@ -1,0 +1,17 @@
+{
+    "name": "postman-to-mcp-generator-js",
+    "version": "1.1.0",
+    "description": "Generates a full MCP server project (JS) from a Postman Collection, supporting both HTTP and Stdio.",
+    "main": "src/cli.js",
+    "scripts": {
+        "start": "node src/cli.js"
+    },
+    "dependencies": {
+        "archiver": "^7.0.1",
+        "openai": "^4.52.0",
+        "postman-collection": "^4.3.0",
+        "inquirer": "^8.2.4",
+        "yargs": "^17.7.2",
+        "zod": "^3.25.76"
+    }
+}

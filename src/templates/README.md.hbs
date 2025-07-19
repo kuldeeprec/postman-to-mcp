@@ -1,0 +1,61 @@
+# MCP Server: {{serverName}}
+
+This is a versatile MCP (Model-Context Protocol) server generated automatically from a Postman Collection. It can run
+over **HTTP** for web clients or **Stdio** for local command-line tools.
+
+## Quick Start
+
+### 1. Installation
+
+Install the required dependencies:
+
+
+### 2. Configuration
+
+Create a `.env` file by copying the example:
+
+
+Edit the `.env` file to set your desired transport and provide any necessary API keys.
+
+### 3. Running the Server
+
+You can run the server in two modes, controlled by the `MCP_TRANSPORT` environment variable in your `.env` file.
+
+#### Option 1: Stdio Mode (Default)
+
+This mode is for local command-line interaction. It's the default if `MCP_TRANSPORT` is not set.
+
+**.env file:**
+
+**Run:**
+The server will listen for MCP JSON-RPC messages on standard input and write responses to standard output.
+
+#### Option 2: HTTP Mode
+
+This mode exposes the server over a stateful HTTP endpoint using Express.js.
+
+**.env file:**
+text
+The server will listen for MCP JSON-RPC messages on standard input and write responses to standard output.
+
+#### Option 2: HTTP Mode
+
+This mode exposes the server over a stateful HTTP endpoint using Express.js.
+
+**.env file:**
+MCP_TRANSPORT=http
+PORT=3000
+
+text
+
+**Run:**
+npm start
+
+text
+The server will be available at `http://localhost:3000/mcp`. Clients must manage a `Mcp-Session-Id` header to maintain a
+stateful connection.
+
+## Available Tools
+
+This server exposes tools based on the files found in the `/tools` directory. The server logs will show a list of
+registered tools upon startup or when a new HTTP session is created.
