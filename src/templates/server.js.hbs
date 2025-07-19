@@ -13,19 +13,43 @@ import 'dotenv/config';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function createAndConfigureServer() {
-const server = new McpServer({ name: '{{serverName}}', version: '1.0.0' });
-const toolsDir = path.join(__dirname, 'tools');
-const toolFiles = await fs.readdir(toolsDir);
-for (const file of toolFiles) {
-if (file.endsWith('.js')) {
-const toolPath = path.join(toolsDir, file);
-const toolUrl = pathToFileURL(toolPath).href;
+async function loadToolFiles(dir) {
+const entries = await fs.readdir(dir, { withFileTypes: true });
+let toolModules = [];
+for (const entry of entries) {
+const fullPath = path.join(dir, entry.name);
+if (entry.isDirectory()) {
+// Recursively load from subfolders
+const subModules = await loadToolFiles(fullPath);
+toolModules = toolModules.concat(subModules);
+} else if (entry.isFile() && entry.name.endsWith('.js')) {
+const toolUrl = pathToFileURL(fullPath).href;
 const toolModule = await import(toolUrl);
-
-server.registerTool(toolModule.name, { title: toolModule.title, description: toolModule.description, inputSchema:
-toolModule.inputSchema }, toolModule.handler);
+toolModules.push(toolModule);
 }
+}
+return toolModules;
+}
+
+async function createAndConfigureServer() {
+const server = new McpServer({ name: '{{serverName}}', version: '1.0.0' , capabilities: {tools: { listChanged: true }
+}});
+const toolsDir = path.join(__dirname, 'tools');
+const toolModules = await loadToolFiles(toolsDir);
+for (const toolModule of toolModules) {
+const isZodSchema = Object.keys(toolModule.inputSchema).length > 0 || false;
+const toolOptions = {
+title: toolModule.title,
+description: toolModule.description,
+};
+if (isZodSchema) {
+toolOptions.inputSchema = toolModule.inputSchema;
+}
+server.registerTool(
+toolModule.name,
+toolOptions,
+toolModule.handler
+);
 }
 return server;
 }

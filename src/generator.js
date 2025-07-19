@@ -6,6 +6,24 @@ const archiver = require('archiver');
 const { generateToolFile } = require('./lib/tools');
 const { OpenAI } = require('openai');
 
+async function processAllItems(items, openai, toolsDir, parentDir = '') {
+    for (const item of items) {
+        if (item.items && item.items.count() > 0) {
+            // It's a folder, create a matching folder inside tools
+            const folderName = item.name.replace(/[^a-zA-Z0-9_-]/g, '_');
+            const folderPath = path.join(parentDir, folderName);
+            await fs.mkdir(path.join(toolsDir, folderPath), { recursive: true });
+            await processAllItems(item.items.all(), openai, toolsDir, folderPath);
+        } else if (item.request) {
+            // It's a request, generate the tool file inside the correct folder
+            console.log(`Processing item: ${item.name || 'Unnamed'} in ${parentDir || 'root'}`);
+            const { fileName, content } = await generateToolFile(item, openai);
+            await fs.writeFile(path.join(toolsDir, parentDir, fileName), content);
+            console.log(`Generated tool: ${path.join(parentDir, fileName)}`);
+        }
+    }
+}
+
 async function generateMcpServer(options) {
     const { collectionPath, outputZipPath, openAIApiKey, serverMode } = options;
     const collectionJson = JSON.parse(await fs.readFile(collectionPath, 'utf-8'));
@@ -16,13 +34,8 @@ async function generateMcpServer(options) {
     try {
         const toolsDir = path.join(tempDir, 'tools');
         await fs.mkdir(toolsDir, { recursive: true });
-        for (const item of collection.items.all()) {
-            console.log(`Processing item: ${item.name || 'Unnamed'}`);
-            if (!item.request) continue;
-            const { fileName, content } = await generateToolFile(item, openai);
-            await fs.writeFile(path.join(toolsDir, fileName), content);
-            console.log(`Generated tool: ${fileName}`);
-        }
+        // Recursively process all items and folders
+        await processAllItems(collection.items.all(), openai, toolsDir);
         const templatesDir = path.join(__dirname, 'templates');
         const templateFiles = ['README.md.hbs', 'env.hbs', 'package.json.hbs', 'server.js.hbs'];
         for (const template of templateFiles) {
@@ -39,6 +52,7 @@ async function generateMcpServer(options) {
         await fs.rm(tempDir, { recursive: true, force: true });
     }
 }
+
 function zipDirectory(sourceDir, outPath) {
     const archive = archiver('zip', { zlib: { level: 9 } });
     const stream = fsSync.createWriteStream(outPath);
@@ -48,4 +62,5 @@ function zipDirectory(sourceDir, outPath) {
         archive.finalize();
     });
 }
+
 module.exports = { generateMcpServer };
