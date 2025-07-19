@@ -88,7 +88,7 @@ await transports[sessionId].handleRequest(req, res);
 app.get('/mcp', sessionHandler);
 app.delete('/mcp', sessionHandler);
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Stateful MCP Server running on http://localhost:${PORT}/mcp`));
+app.listen(PORT, () => console.log(` Stateful MCP Server running on http://localhost:${PORT}/mcp`));
 
 } else if (transportMode === 'http-stateless') {
 // --- Stateless HTTP Transport (No Sessions) ---
@@ -115,14 +115,14 @@ res.status(500).json({ error: 'Internal Server Error' });
 }
 });
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Stateless MCP Server running on http://localhost:${PORT}/mcp`));
+app.listen(PORT, () => console.log(`Stateless MCP Server running on http://localhost:${PORT}/mcp`));
 
 } else {
 // --- Stdio Transport (Default) ---
 const server = await createAndConfigureServer();
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.log(`✅ MCP Server running on stdio.`);
+console.log(` MCP Server running on stdio.`);
 }
 }
 

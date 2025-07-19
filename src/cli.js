@@ -52,9 +52,9 @@ yargs(hideBin(process.argv))
                     openAIApiKey: argv['openai-key'],
                     serverMode: answers.serverMode,
                 });
-                console.log(`✅ MCP Server successfully generated at ${argv.output}`);
+                console.log(` MCP Server successfully generated at ${argv.output}`);
             } catch (error) {
-                console.error('❌ An error occurred during generation:', error);
+                console.error(' An error occurred during generation:', error);
                 process.exit(1);
             }
         }
